@@ -1,4 +1,4 @@
-tchtower (for MySQL)
+Watchtower (for MySQL)
 ======================
 
 ### Watchtower
