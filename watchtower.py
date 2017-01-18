@@ -337,11 +337,11 @@ def print_header():
     make_line("-", 143) 
 
   elif ViewMode == 5:
-    make_line("-", 181)
+    make_line("-", 130)
     print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s %4s %4s %5s  %7s %7s" % \
          ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Update", "Insert", "Delete", "Replace", "QPS",
           "Slow", "SlowΣ", "RO", "IO", "SQL" , "Delay", "NetRecv", "NetSent")
-    make_line("-", 181)
+    make_line("-", 130)
 
 
 def toggle(v):
