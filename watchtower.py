@@ -450,7 +450,7 @@ if __name__ == '__main__':
           acc_sum_abo = acc_sum_abo + mi.sum_abo
           acc_select = acc_select + com_sel
           acc_update = acc_update + com_upd
-          acc_insert = acc_update + com_ins
+          acc_insert = acc_insert + com_ins
           acc_delete = acc_delete + com_del
           acc_replace = acc_replace + com_rep
           acc_qps = acc_qps + com_qps
