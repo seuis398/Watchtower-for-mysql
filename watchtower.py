@@ -79,8 +79,16 @@ class MyInstance:
       for row in self.dbcur:
         self.curr_stat[row["Variable_name"].lower()] = row["Value"]
 
-      # global variable
+      # global variable (read_only, version, gtid_mode)
       self.dbcur.execute("SHOW GLOBAL VARIABLES LIKE 'read_only'")
+      for row in self.dbcur:
+        self.curr_stat[row["Variable_name"].lower()] = row["Value"]
+
+      self.dbcur.execute("SHOW GLOBAL VARIABLES LIKE 'version'")
+      for row in self.dbcur:
+        self.curr_stat[row["Variable_name"].lower()] = row["Value"].split("-")[0]
+
+      self.dbcur.execute("SHOW GLOBAL VARIABLES LIKE 'gtid_mode'")
       for row in self.dbcur:
         self.curr_stat[row["Variable_name"].lower()] = row["Value"]
 
@@ -302,11 +310,11 @@ def print_header():
   print "" 
 
   if ViewMode == 0:
-    make_line("-", 113)
-    print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s %4s %4s %5s" % \
+    make_line("-", 128)
+    print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s %4s %4s %5s  %7s  %4s" % \
          ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Update", "Insert", "Delete", "Replace", "QPS",
-          "Slow", "SlowΣ", "RO", "IO", "SQL" , "Delay")
-    make_line("-", 113)
+          "Slow", "SlowΣ", "RO", "IO", "SQL" , "Delay", "Version", "GTID")
+    make_line("-", 128)
 
   elif ViewMode == 1:
     make_line("-", 162)
@@ -464,10 +472,11 @@ if __name__ == '__main__':
         disk_tmp = mi.get_per_sec('created_tmp_disk_tables')
 
         if ViewMode == 0 and mi.connected == True:  #Basic 
-          print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d" % \
+          print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %7s  %4s" % \
                (mi.hostname, mi.port, mi.get_current('threads_connected'), run,
                 abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
-                mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2]
+                mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
+                mi.get_current('version'), mi.get_current('gtid_mode')
                )
 
         elif ViewMode == 1 and mi.connected == True:  #InnoDB
