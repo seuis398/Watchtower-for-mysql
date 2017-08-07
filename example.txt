@@ -1,4 +1,5 @@
 group1,test1,3306
 group1,test2,3306
-group2,test3,3307
-group2,test4,3307
+group2,test3,3306
+group2,test4,3306
+group2,test5,3306

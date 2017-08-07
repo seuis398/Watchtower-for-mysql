@@ -20,10 +20,21 @@ GRANT REPLICATION CLIENT ON *.*  to {USER}@{MONITOR_SERVER_IP} IDENTIFIED BY '{P
 ````
 #### 3) Run watchtower
 ````
-$ python watchtower.py serverlist.txt USER PASS
+$ python watchtower.py serverlist.txt
+MySQL Username : ****
+MySQL Password : ****
+````
+
+or, You can use hard-coded id/password. (line #14 ~ 16)
+````
+14 # Global Variable
+15 MySQL_User="****"
+16 MySQL_Pass="****"
 ````
 
 ### Screenshots
+#### Basic Mode
+![Mode_Basic](res/screenshot0.png "Basic Mode")
 #### InnoDB Mode
 ![Mode_InnoDB](res/screenshot1.png "InnoDB Mode")
 #### Replication Mode
