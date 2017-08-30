@@ -4,6 +4,13 @@ Watchtower (for MySQL)
 ### Watchtower
 Watchtower is a python application designed for monitoring multiple mysql instances. 
 
+### Requirements
+- Python
+- Python/MySQLdb
+```
+$ yum install MySQL-python
+```
+
 ### Usage
 #### 1) Create server list file.
 Server list file is a CSV file that contains group name, hostname, mysql port. See "example.txt".
