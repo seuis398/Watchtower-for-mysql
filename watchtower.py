@@ -9,7 +9,7 @@ import getpass
 import MySQLdb
 import MySQLdb.cursors
 
-WT_VERSION="0.5"
+WT_VERSION="0.6"
 
 # Global Variables
 MySQL_User=""
