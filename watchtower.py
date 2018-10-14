@@ -358,7 +358,14 @@ def toggle(v):
   else:
     return True
 
+
+def put_ellipsis(str, n):
+  if len(str) > n:
+    return str[:n-1] + "…"  
+  else:
+    return str
  
+
 #
 # MAIN
 #
@@ -473,7 +480,7 @@ if __name__ == '__main__':
 
         if ViewMode == 0 and mi.connected == True:  #Basic 
           print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %7s  %4s" % \
-               (mi.hostname, mi.port, mi.get_current('threads_connected'), run,
+               (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                 abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_current('version'), mi.get_current('gtid_mode')
@@ -481,7 +488,7 @@ if __name__ == '__main__':
 
         elif ViewMode == 1 and mi.connected == True:  #InnoDB
           print "%16s %5d %5s %3d %2s %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %7d %7d %7d %8d %5.1f%% %5dmb" % \
-               (mi.hostname, mi.port, mi.get_current('threads_connected'), run,
+               (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                 abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 inno_row_read, inno_row_write, mi.get_per_sec('innodb_buffer_pool_read_requests'), mi.get_per_sec('innodb_buffer_pool_reads'),
@@ -496,7 +503,7 @@ if __name__ == '__main__':
           for idx in range(0, mi.get_repl_channel_cnt()):
             if idx == 0:
               print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s  %7s %3s %3s  %16s %10s  %16s %10s %5d %s" % \
-                   (mi.hostname, mi.port, mi.get_current('threads_connected'), run,
+                   (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                     abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
                     mi.get_current('read_only').replace('OFF', ''),
                     repl_detail[idx][8], repl_detail[idx][4], repl_detail[idx][5],
@@ -514,7 +521,7 @@ if __name__ == '__main__':
 
         elif ViewMode == 3 and mi.connected == True:  #Handler
           print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %7d %7d %7d %7d %7d %7d %7d" % \
-               (mi.hostname, mi.port, mi.get_current('threads_connected'), run,
+               (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                 abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_per_sec('handler_read_key'), mi.get_per_sec('handler_read_next'), mi.get_per_sec('handler_read_prev'),
@@ -523,7 +530,7 @@ if __name__ == '__main__':
 
         elif ViewMode == 4 and mi.connected == True:  #Sort&Temp
           print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %8d %10d %8d" % \
-               (mi.hostname, mi.port, mi.get_current('threads_connected'), run,
+               (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                 abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_per_sec('sort_rows'), memory_tmp, disk_tmp
@@ -531,7 +538,7 @@ if __name__ == '__main__':
 
         elif ViewMode == 5 and mi.connected == True:  #Net&FileIO
           print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %5dkb %5dkb" % \
-               (mi.hostname, mi.port, mi.get_current('threads_connected'), run,
+               (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                 abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_per_sec('bytes_received') / 1024, mi.get_per_sec('bytes_sent') / 1024
@@ -575,7 +582,7 @@ if __name__ == '__main__':
 
       # reconnect
       if mi.connected == False:
-        print "%16s %5d --x-- not connected or no privileges" % (mi.hostname, mi.port)
+        print "%16s %5d --x-- not connected or no privileges" % (put_ellipsis(mi.hostname,16), mi.port)
         mi.connect(MySQL_User, MySQL_Pass)                                                                                     
 
       prev_group = mi.groupname
