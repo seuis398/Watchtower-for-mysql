@@ -18,6 +18,7 @@ MySQL_Pass=""
 ViewMode=0
 RefreshInterval=3
 CmdGroupSum=False
+CmdWriteSum=False
 CmdFileLogging=False
 CmdReset=False
 CmdExit=False
@@ -256,6 +257,7 @@ def input_thread():
    global CmdExit
    global CmdFileLogging
    global CmdGroupSum
+   global CmdWriteSum
    global CmdReset
 
    while True:
@@ -270,6 +272,8 @@ def input_thread():
          CmdFileLogging = toggle(CmdFileLogging)
       elif ch == 'g':
          CmdGroupSum = toggle(CmdGroupSum)
+      elif ch == 'w':
+         CmdWriteSum = toggle(CmdWriteSum)
       elif ch == "r":
          CmdReset = True
       elif ch == "+":
@@ -301,50 +305,93 @@ def print_header():
          (color.bold_underline + "4.Sort&Temp" + color.reset) if ViewMode == 4 else "4.Sort&Temp",
          (color.bold_underline + "5.Network" + color.reset) if ViewMode == 5 else "5.Network")
   print "Interval  : %d sec." % RefreshInterval
-  print "Command   : %s, %s, %s, %s, %s" % \
+  print "Command   : %s, %s, %s, %s, %s, %s" % \
        ( "(X or Q)Exit", # (color.bold_underline + "(X or Q)Exit" + color.reset) if CmdExit == True else "(X or Q)Exit",
          (color.bold_underline + "(F)FileLogging" + color.reset) if CmdFileLogging == True else "(F)FileLogging", 
          (color.bold_underline + "(G)GroupSum" + color.reset) if CmdGroupSum == True else "(G)GroupSum",
+         (color.bold_underline + "(W)WriteSummary" + color.reset) if CmdWriteSum == True else "(W)WriteSummary",
          "(R)ResetΣ", #(color.bold_underline + "(R)ResetΣ" + color.reset) if CmdReset == True else "(R)ResetΣ",
          "(+|-)Interval") #(color.bold_underline + "(+/-)Interval" + color.reset) if CmdExit == True else "(+|-)Interval")
   print "" 
 
-  if ViewMode == 0:
+  if ViewMode == 0 and CmdWriteSum == True:
+    make_line("-", 105)
+    print "%16s %5s %5s %3s %2s %3s  %6s %5s %5s %4s %5s  %2s %4s %4s %5s  %7s  %4s" % \
+         ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Write", "QPS",
+          "Slow", "SlowΣ", "RO", "IO", "SQL" , "Delay", "Version", "GTID")
+    make_line("-", 105)
+
+  elif ViewMode == 0 and CmdWriteSum == False:
     make_line("-", 128)
     print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s %4s %4s %5s  %7s  %4s" % \
          ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Update", "Insert", "Delete", "Replace", "QPS",
           "Slow", "SlowΣ", "RO", "IO", "SQL" , "Delay", "Version", "GTID")
     make_line("-", 128)
 
-  elif ViewMode == 1:
+  elif ViewMode == 1 and CmdWriteSum == True:
+    make_line("-", 139)
+    print "%16s %5s %5s %3s %2s %3s  %6s %5s %5s %4s %5s  %2s %4s %4s %5s  %7s %7s %7s %8s %6s %7s" % \
+         ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Write", "QPS",  
+          "Slow", "SlowΣ", "RO", "IO", "SQL" , "Delay", "R.Read", "R.Write", "Logical", "Physical", "B.Hit%", "B.Dirty")
+    make_line("-", 139)
+
+  elif ViewMode == 1 and CmdWriteSum == False:
     make_line("-", 162)
     print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s %4s %4s %5s  %7s %7s %7s %8s %6s %7s" % \
-         ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Update", "Insert", "Delete", "Replace", "QPS",  
+         ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Update", "Insert", "Delete", "Replace", "QPS",
           "Slow", "SlowΣ", "RO", "IO", "SQL" , "Delay", "R.Read", "R.Write", "Logical", "Physical", "B.Hit%", "B.Dirty")
     make_line("-", 162)
 
-  elif ViewMode == 2:
-    make_line("-", 184)  
+  elif ViewMode == 2 and CmdWriteSum == True:
+    make_line("-", 161)  
+    print "%16s %5s %5s %3s %2s %3s  %6s %5s %5s %4s %5s  %2s  %7s %3s %3s  %16s %10s  %16s %10s %5s %5s" % \
+         ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Write", "QPS",
+          "Slow", "SlowΣ", "RO", "Channel", "IO", "SQL", "Master_Log", "Master_Pos", "Relay_M_Log", "Exec_Pos", "Delay", "Error")
+    make_line("-", 161)
+
+  elif ViewMode == 2 and CmdWriteSum == False:
+    make_line("-", 184)
     print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s  %7s %3s %3s  %16s %10s  %16s %10s %5s %5s" % \
          ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Update", "Insert", "Delete", "Replace", "QPS",
           "Slow", "SlowΣ", "RO", "Channel", "IO", "SQL", "Master_Log", "Master_Pos", "Relay_M_Log", "Exec_Pos", "Delay", "Error")
     make_line("-", 184)
 
-  elif ViewMode == 3:
+  elif ViewMode == 3 and CmdWriteSum == True:
+    make_line("-", 147)
+    print "%16s %5s %5s %3s %2s %3s  %6s %5s %5s %4s %5s  %2s %4s %4s %5s  %7s %7s %7s %7s %7s %7s %7s" % \
+         ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Write", "QPS",
+          "Slow", "SlowΣ", "RO", "IO", "SQL" , "Delay", "Key", "Next", "Prev", "Rnd", "RndNext", "Update", "Write")
+    make_line("-", 147)
+
+  elif ViewMode == 3 and CmdWriteSum == False:
     make_line("-", 170)
     print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s %4s %4s %5s  %7s %7s %7s %7s %7s %7s %7s" % \
          ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Update", "Insert", "Delete", "Replace", "QPS",
           "Slow", "SlowΣ", "RO", "IO", "SQL" , "Delay", "Key", "Next", "Prev", "Rnd", "RndNext", "Update", "Write")
     make_line("-", 170)
 
-  elif ViewMode == 4:
+  elif ViewMode == 4 and CmdWriteSum == True:
+    make_line("-", 120)
+    print "%16s %5s %5s %3s %2s %3s  %6s %5s %5s %4s %5s  %2s %4s %4s %5s  %8s %10s %8s" % \
+         ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Write", "QPS",
+          "Slow", "SlowΣ", "RO", "IO", "SQL" , "Delay", "SortRows", "MemoryTemp", "DiskTemp")
+    make_line("-", 120) 
+
+  elif ViewMode == 4 and CmdWriteSum == False:
     make_line("-", 143)
     print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s %4s %4s %5s  %8s %10s %8s" % \
          ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Update", "Insert", "Delete", "Replace", "QPS",
           "Slow", "SlowΣ", "RO", "IO", "SQL" , "Delay", "SortRows", "MemoryTemp", "DiskTemp")
-    make_line("-", 143) 
+    make_line("-", 143)
 
-  elif ViewMode == 5:
+  elif ViewMode == 5 and CmdWriteSum == True:
+    make_line("-", 107)
+    print "%16s %5s %5s %3s %2s %3s  %6s %5s %5s %4s %5s  %2s %4s %4s %5s  %7s %7s" % \
+         ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Write", "QPS",
+          "Slow", "SlowΣ", "RO", "IO", "SQL" , "Delay", "NetRecv", "NetSent")
+    make_line("-", 107)
+
+  elif ViewMode == 5 and CmdWriteSum == False:
     make_line("-", 130)
     print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s %4s %4s %5s  %7s %7s" % \
          ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Update", "Insert", "Delete", "Replace", "QPS",
@@ -417,9 +464,13 @@ if __name__ == '__main__':
 
     for mi in mys: 
       if prev_group != "" and prev_group != mi.groupname and CmdGroupSum == True:
-        print "%33s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d %s" % \
-             (color.red, acc_run, acc_ab, acc_sum_abo, acc_select, acc_update, acc_insert,
-              acc_delete, acc_replace, acc_qps, acc_slow, acc_sum_slow, color.reset)
+        if CmdWriteSum == True:
+          print "%33s %3d %2d %3d  %6d %5d %5d %4d %5d %s" % \
+                (color.red, acc_run, acc_ab, acc_sum_abo, acc_select, acc_write, acc_qps, acc_slow, acc_sum_slow, color.reset)
+        else:
+          print "%33s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d %s" % \
+                (color.red, acc_run, acc_ab, acc_sum_abo, acc_select, acc_update, acc_insert, acc_delete, acc_replace, acc_qps, acc_slow, acc_sum_slow, color.reset)
+
 
       if prev_group != mi.groupname:
         print "\n##", mi.groupname
@@ -431,6 +482,7 @@ if __name__ == '__main__':
         acc_insert = 0
         acc_delete = 0
         acc_replace = 0
+        acc_write = 0
         acc_qps = 0
         acc_slow = 0
         acc_sum_slow = 0        
@@ -445,6 +497,7 @@ if __name__ == '__main__':
         com_del = mi.get_per_sec('com_delete') + mi.get_per_sec('com_delete_multi')
         com_ins = mi.get_per_sec('com_insert') + mi.get_per_sec('com_insert_select')
         com_rep = mi.get_per_sec('com_replace')
+        com_write = com_upd + com_del + com_ins + com_rep
         com_qps = com_sel + com_upd + com_del + com_ins + com_rep
         slow = mi.get_delta('slow_queries')
         inno_row_read = mi.get_per_sec('innodb_rows_read')
@@ -468,6 +521,7 @@ if __name__ == '__main__':
           acc_insert = acc_insert + com_ins
           acc_delete = acc_delete + com_del
           acc_replace = acc_replace + com_rep
+          acc_write = acc_write + com_write
           acc_qps = acc_qps + com_qps
           acc_slow = acc_slow + slow 
           acc_sum_slow = acc_sum_slow + mi.sum_slow
@@ -478,7 +532,15 @@ if __name__ == '__main__':
         memory_tmp = mi.get_per_sec('created_tmp_tables') - mi.get_per_sec('created_tmp_disk_tables')
         disk_tmp = mi.get_per_sec('created_tmp_disk_tables')
 
-        if ViewMode == 0 and mi.connected == True:  #Basic 
+        if ViewMode == 0 and CmdWriteSum == True and mi.connected == True:  #Basic 
+          print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s %4s %4s %5d  %7s  %4s" % \
+               (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
+                abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
+                mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
+                mi.get_current('version'), mi.get_current('gtid_mode')
+               )
+
+        elif ViewMode == 0 and CmdWriteSum == False and mi.connected == True:  #Basic
           print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %7s  %4s" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                 abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
@@ -486,7 +548,17 @@ if __name__ == '__main__':
                 mi.get_current('version'), mi.get_current('gtid_mode')
                )
 
-        elif ViewMode == 1 and mi.connected == True:  #InnoDB
+        elif ViewMode == 1 and CmdWriteSum == True and mi.connected == True:  #InnoDB
+          print "%16s %5d %5s %3d %2s %3d  %6d %5d %5d %4d %5d  %2s %4s %4s %5d  %7d %7d %7d %8d %5.1f%% %5dmb" % \
+               (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
+                abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
+                mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
+                inno_row_read, inno_row_write, mi.get_per_sec('innodb_buffer_pool_read_requests'), mi.get_per_sec('innodb_buffer_pool_reads'),
+                100.0 - (100.0 * mi.get_per_sec('innodb_buffer_pool_reads') / mi.get_per_sec('innodb_buffer_pool_read_requests')) if mi.get_per_sec('innodb_buffer_pool_read_requests') > 0 else 100.0,
+                mi.get_current('innodb_buffer_pool_bytes_dirty') == '' and -1 or int(mi.get_current('innodb_buffer_pool_bytes_dirty')) / 1024 / 1024
+              )
+
+        elif ViewMode == 1 and CmdWriteSum == False and mi.connected == True:  #InnoDB
           print "%16s %5d %5s %3d %2s %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %7d %7d %7d %8d %5.1f%% %5dmb" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                 abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
@@ -496,10 +568,33 @@ if __name__ == '__main__':
                 mi.get_current('innodb_buffer_pool_bytes_dirty') == '' and -1 or int(mi.get_current('innodb_buffer_pool_bytes_dirty')) / 1024 / 1024
               )
 
-        elif ViewMode == 2 and mi.connected == True:  #Replication
+        elif ViewMode == 2 and CmdWriteSum == True and mi.connected == True:  #Replication
           repl_detail = []
           repl_detail = mi.get_repl_detail()
           
+          for idx in range(0, mi.get_repl_channel_cnt()):
+            if idx == 0:
+              print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s  %7s %3s %3s  %16s %10s  %16s %10s %5d %s" % \
+                   (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
+                    abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
+                    mi.get_current('read_only').replace('OFF', ''),
+                    repl_detail[idx][8], repl_detail[idx][4], repl_detail[idx][5],
+                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][2], repl_detail[idx][3],
+                    repl_detail[idx][7], repl_detail[idx][6]
+                 )
+            else: # multi-source replication
+              print "%83s %3s %3s  %16s %10s  %16s %10s %5d %s" % \
+                   (repl_detail[idx][8], repl_detail[idx][4], repl_detail[idx][5],
+                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][2], repl_detail[idx][3],
+                    repl_detail[idx][7], repl_detail[idx][6]
+                   )
+
+          del repl_detail
+
+        elif ViewMode == 2 and CmdWriteSum == False and mi.connected == True:  #Replication
+          repl_detail = []
+          repl_detail = mi.get_repl_detail()
+
           for idx in range(0, mi.get_repl_channel_cnt()):
             if idx == 0:
               print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s  %7s %3s %3s  %16s %10s  %16s %10s %5d %s" % \
@@ -519,16 +614,33 @@ if __name__ == '__main__':
 
           del repl_detail
 
-        elif ViewMode == 3 and mi.connected == True:  #Handler
-          print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %7d %7d %7d %7d %7d %7d %7d" % \
+        elif ViewMode == 3 and CmdWriteSum == True and mi.connected == True:  #Handler
+          print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s %4s %4s %5d  %7d %7d %7d %7d %7d %7d %7d" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
+                abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_per_sec('handler_read_key'), mi.get_per_sec('handler_read_next'), mi.get_per_sec('handler_read_prev'),
                 mi.get_per_sec('handler_read_rnd'), mi.get_per_sec('handler_read_rnd_next'), mi.get_per_sec('handler_update'), mi.get_per_sec('handler_write') 
                )
 
-        elif ViewMode == 4 and mi.connected == True:  #Sort&Temp
+        elif ViewMode == 3 and CmdWriteSum == False and mi.connected == True:  #Handler
+          print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %7d %7d %7d %7d %7d %7d %7d" % \
+               (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
+                abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
+                mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
+                mi.get_per_sec('handler_read_key'), mi.get_per_sec('handler_read_next'), mi.get_per_sec('handler_read_prev'),
+                mi.get_per_sec('handler_read_rnd'), mi.get_per_sec('handler_read_rnd_next'), mi.get_per_sec('handler_update'), mi.get_per_sec('handler_write')
+               )
+
+        elif ViewMode == 4 and CmdWriteSum == True and mi.connected == True:  #Sort&Temp
+          print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s %4s %4s %5d  %8d %10d %8d" % \
+               (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
+                abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
+                mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
+                mi.get_per_sec('sort_rows'), memory_tmp, disk_tmp
+               )
+
+        elif ViewMode == 4 and CmdWriteSum == False and mi.connected == True:  #Sort&Temp
           print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %8d %10d %8d" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                 abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
@@ -536,13 +648,22 @@ if __name__ == '__main__':
                 mi.get_per_sec('sort_rows'), memory_tmp, disk_tmp
                )
 
-        elif ViewMode == 5 and mi.connected == True:  #Net&FileIO
+        elif ViewMode == 5 and CmdWriteSum == True and mi.connected == True:  #Net&FileIO
+          print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s %4s %4s %5d  %5dkb %5dkb" % \
+               (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
+                abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
+                mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
+                mi.get_per_sec('bytes_received') / 1024, mi.get_per_sec('bytes_sent') / 1024
+               )
+
+        elif ViewMode == 5 and CmdWriteSum == False and mi.connected == True:  #Net&FileIO
           print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %5dkb %5dkb" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                 abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_per_sec('bytes_received') / 1024, mi.get_per_sec('bytes_sent') / 1024
                )
+
 
         if CmdFileLogging == True:
           try:
@@ -594,9 +715,12 @@ if __name__ == '__main__':
       fileheader = 0 
 
     if CmdGroupSum == True:
-      print "%33s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d %s" % \
-           (color.red, acc_run, acc_ab, acc_sum_abo, acc_select, acc_update, acc_insert,
-            acc_delete, acc_replace, acc_qps, acc_slow, acc_sum_slow, color.reset)  
+      if CmdWriteSum == True:
+        print "%33s %3d %2d %3d  %6d %5d %5d %4d %5d %s" % \
+             (color.red, acc_run, acc_ab, acc_sum_abo, acc_select, acc_write, acc_qps, acc_slow, acc_sum_slow, color.reset)  
+      else:
+        print "%33s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d %s" % \
+             (color.red, acc_run, acc_ab, acc_sum_abo, acc_select, acc_update, acc_insert, acc_delete, acc_replace, acc_qps, acc_slow, acc_sum_slow, color.reset)
 
     CmdReset = False
 
