@@ -80,18 +80,10 @@ class MyInstance:
       for row in self.dbcur:
         self.curr_stat[row["Variable_name"].lower()] = row["Value"]
 
-      # global variable (read_only, version, gtid_mode)
-      self.dbcur.execute("SHOW GLOBAL VARIABLES LIKE 'read_only'")
+      # global variable (read_only, version, gtid_mode, mts configuration)
+      self.dbcur.execute("SHOW GLOBAL VARIABLES where Variable_name in ('read_only', 'version', 'gtid_mode', 'slave_parallel_type', 'slave_parallel_workers')")
       for row in self.dbcur:
-        self.curr_stat[row["Variable_name"].lower()] = row["Value"]
-
-      self.dbcur.execute("SHOW GLOBAL VARIABLES LIKE 'version'")
-      for row in self.dbcur:
-        self.curr_stat[row["Variable_name"].lower()] = row["Value"].split("-")[0]
-
-      self.dbcur.execute("SHOW GLOBAL VARIABLES LIKE 'gtid_mode'")
-      for row in self.dbcur:
-        self.curr_stat[row["Variable_name"].lower()] = row["Value"]
+        self.curr_stat[row["Variable_name"].lower()] = row["Value"].split("-")[0] if row["Variable_name"].lower() == "version" else row["Value"]
 
       # slave status
       self.curr_stat["master_log_file"] = []
@@ -199,16 +191,17 @@ class MyInstance:
     ret = []
 
     if len(self.curr_stat["master_log_file"]) == 0:
-      ret.append(["", "", "", "", "-", "-", "", 0, ""])
+      ret.append(["", "", "-", "-", "", 0, ""])
     else:
       for idx in range(0, len(self.curr_stat["master_log_file"])):
         io_thread = "Yes" if self.curr_stat["slave_io_running"][idx] == "Yes" else "No"
         sql_thread = "Yes" if self.curr_stat["slave_sql_running"][idx] == "Yes" else "No"
 
-        ret.append( [ self.curr_stat["master_log_file"][idx], self.curr_stat["read_master_log_pos"][idx], \
-                    self.curr_stat["relay_master_log_file"][idx], self.curr_stat["exec_master_log_pos"][idx], \
-                    io_thread, sql_thread, self.curr_stat["last_error"][idx], 
-                    self.curr_stat["seconds_behind_master"][idx], self.curr_stat["channel_name"][idx] ] )
+        ret.append( [ self.curr_stat["master_log_file"][idx].split(".")[-1] + "-" + str(self.curr_stat["read_master_log_pos"][idx]), \
+                      self.curr_stat["relay_master_log_file"][idx].split(".")[-1] + "-" + str(self.curr_stat["exec_master_log_pos"][idx]), \
+                      io_thread, sql_thread, self.curr_stat["last_error"][idx], \
+                      self.curr_stat["seconds_behind_master"][idx], \
+                      self.curr_stat["channel_name"][idx] ] )
 
     return ret
 
@@ -343,18 +336,18 @@ def print_header():
     make_line("-", 162)
 
   elif ViewMode == 2 and CmdWriteSum == True:
-    make_line("-", 161)  
-    print "%16s %5s %5s %3s %2s %3s  %6s %5s %5s %4s %5s  %2s  %7s %3s %3s  %16s %10s  %16s %10s %5s %5s" % \
+    make_line("-", 151)
+    print "%16s %5s %5s %3s %2s %3s  %6s %5s %5s %4s %5s  %2s  %10s %7s %3s %3s %5s  %-17s %-17s %5s" % \
          ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Write", "QPS",
-          "Slow", "SlowΣ", "RO", "Channel", "IO", "SQL", "Master_Log", "Master_Pos", "Relay_M_Log", "Exec_Pos", "Delay", "Error")
-    make_line("-", 161)
+          "Slow", "SlowΣ", "RO", "Repl_Type", "Channel", "IO", "SQL", "Delay", "Master_Log", "Exec_Master_Log", "Error")
+    make_line("-", 151)
 
   elif ViewMode == 2 and CmdWriteSum == False:
-    make_line("-", 184)
-    print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s  %7s %3s %3s  %16s %10s  %16s %10s %5s %5s" % \
+    make_line("-", 174)
+    print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s  %10s %7s %3s %3s %5s  %-17s %-17s %5s" % \
          ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Update", "Insert", "Delete", "Replace", "QPS",
-          "Slow", "SlowΣ", "RO", "Channel", "IO", "SQL", "Master_Log", "Master_Pos", "Relay_M_Log", "Exec_Pos", "Delay", "Error")
-    make_line("-", 184)
+          "Slow", "SlowΣ", "RO", "Repl_Type", "Channel", "IO", "SQL", "Delay", "Master_Log", "Exec_Master_Log", "Error")
+    make_line("-", 174)
 
   elif ViewMode == 3 and CmdWriteSum == True:
     make_line("-", 147)
@@ -502,6 +495,14 @@ if __name__ == '__main__':
         slow = mi.get_delta('slow_queries')
         inno_row_read = mi.get_per_sec('innodb_rows_read')
         inno_row_write = mi.get_per_sec('innodb_rows_inserted') + mi.get_per_sec('innodb_rows_updated') + mi.get_per_sec('innodb_rows_deleted')
+
+        if mi.get_current('slave_parallel_type') == '' or int(mi.get_current('slave_parallel_workers')) == 0:
+          repl_type = "Single"
+        else:
+          if mi.get_current('slave_parallel_type') == "DATABASE":
+            repl_type = "DB/" + mi.get_current('slave_parallel_workers')
+          elif mi.get_current('slave_parallel_type') == "LOGICAL_CLOCK":
+            repl_type = "L.Clock/" + mi.get_current('slave_parallel_workers')
   
         # ResetΣ"
         if CmdReset == True:
@@ -574,20 +575,16 @@ if __name__ == '__main__':
           
           for idx in range(0, mi.get_repl_channel_cnt()):
             if idx == 0:
-              print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s  %7s %3s %3s  %16s %10s  %16s %10s %5d %s" % \
+              print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s  %10s %7s %3s %3s %5d  %-17s %-17s %s" % \
                    (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                     abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
-                    mi.get_current('read_only').replace('OFF', ''),
-                    repl_detail[idx][8], repl_detail[idx][4], repl_detail[idx][5],
-                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][2], repl_detail[idx][3],
-                    repl_detail[idx][7], repl_detail[idx][6]
-                 )
+                    mi.get_current('read_only').replace('OFF', ''), repl_type,
+                    repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5],
+                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][4])
             else: # multi-source replication
-              print "%83s %3s %3s  %16s %10s  %16s %10s %5d %s" % \
-                   (repl_detail[idx][8], repl_detail[idx][4], repl_detail[idx][5],
-                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][2], repl_detail[idx][3],
-                    repl_detail[idx][7], repl_detail[idx][6]
-                   )
+              print "%94s %3s %3s %5d  %-17s %-17s %s" % \
+                   (repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5],
+                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][4])
 
           del repl_detail
 
@@ -597,20 +594,16 @@ if __name__ == '__main__':
 
           for idx in range(0, mi.get_repl_channel_cnt()):
             if idx == 0:
-              print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s  %7s %3s %3s  %16s %10s  %16s %10s %5d %s" % \
+              print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s  %10s %7s %3s %3s %5d  %-17s %-17s %s" % \
                    (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                     abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
-                    mi.get_current('read_only').replace('OFF', ''),
-                    repl_detail[idx][8], repl_detail[idx][4], repl_detail[idx][5],
-                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][2], repl_detail[idx][3],
-                    repl_detail[idx][7], repl_detail[idx][6]
-                 )
+                    mi.get_current('read_only').replace('OFF', ''), repl_type,
+                    repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5],
+                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][4])
             else: # multi-source replication
-              print "%106s %3s %3s  %16s %10s  %16s %10s %5d %s" % \
-                   (repl_detail[idx][8], repl_detail[idx][4], repl_detail[idx][5],
-                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][2], repl_detail[idx][3],
-                    repl_detail[idx][7], repl_detail[idx][6]
-                   )
+              print "%117s %3s %3s %5d  %-17s %-17s %s" % \
+                   (repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5],
+                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][4])
 
           del repl_detail
 
