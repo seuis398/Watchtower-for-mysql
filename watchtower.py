@@ -516,7 +516,7 @@ if __name__ == '__main__':
         if CmdGroupSum == True:
           acc_run = acc_run + run
           acc_ab = acc_ab + abo
-          acc_sum_abo = acc_sum_abo + mi.sum_abo
+          acc_sum_abo = acc_sum_abo + mi.sum_abo if acc_sum_abo + mi.sum_abo <= 999 else 999
           acc_select = acc_select + com_sel
           acc_update = acc_update + com_upd
           acc_insert = acc_insert + com_ins
@@ -524,9 +524,13 @@ if __name__ == '__main__':
           acc_replace = acc_replace + com_rep
           acc_write = acc_write + com_write
           acc_qps = acc_qps + com_qps
-          acc_slow = acc_slow + slow 
-          acc_sum_slow = acc_sum_slow + mi.sum_slow
+          acc_slow = acc_slow + slow
+          acc_sum_slow = acc_sum_slow + mi.sum_slow if acc_sum_slow + mi.sum_slow <= 99999 else 99999
         
+        # do not update, if Σ is too big
+	rts_sum_abo = mi.sum_abo if mi.sum_abo <= 999 else 999
+	rts_sum_slow = mi.sum_slow if mi.sum_slow <= 99999 else 99999
+
         repl_summary = [] 
         repl_summary = mi.get_repl_summary()
 
@@ -536,7 +540,7 @@ if __name__ == '__main__':
         if ViewMode == 0 and CmdWriteSum == True and mi.connected == True:  #Basic 
           print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s %4s %4s %5d  %7s  %4s" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
+                abo, rts_sum_abo, com_sel, com_write, com_qps, slow, rts_sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_current('version'), mi.get_current('gtid_mode')
                )
@@ -544,7 +548,7 @@ if __name__ == '__main__':
         elif ViewMode == 0 and CmdWriteSum == False and mi.connected == True:  #Basic
           print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %7s  %4s" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
+                abo, rts_sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, rts_sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_current('version'), mi.get_current('gtid_mode')
                )
@@ -552,7 +556,7 @@ if __name__ == '__main__':
         elif ViewMode == 1 and CmdWriteSum == True and mi.connected == True:  #InnoDB
           print "%16s %5d %5s %3d %2s %3d  %6d %5d %5d %4d %5d  %2s %4s %4s %5d  %7d %7d %7d %8d %5.1f%% %5dmb" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
+                abo, rts_sum_abo, com_sel, com_write, com_qps, slow, rts_sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 inno_row_read, inno_row_write, mi.get_per_sec('innodb_buffer_pool_read_requests'), mi.get_per_sec('innodb_buffer_pool_reads'),
                 100.0 - (100.0 * mi.get_per_sec('innodb_buffer_pool_reads') / mi.get_per_sec('innodb_buffer_pool_read_requests')) if mi.get_per_sec('innodb_buffer_pool_read_requests') > 0 else 100.0,
@@ -562,7 +566,7 @@ if __name__ == '__main__':
         elif ViewMode == 1 and CmdWriteSum == False and mi.connected == True:  #InnoDB
           print "%16s %5d %5s %3d %2s %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %7d %7d %7d %8d %5.1f%% %5dmb" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
+                abo, rts_sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, rts_sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 inno_row_read, inno_row_write, mi.get_per_sec('innodb_buffer_pool_read_requests'), mi.get_per_sec('innodb_buffer_pool_reads'),
                 100.0 - (100.0 * mi.get_per_sec('innodb_buffer_pool_reads') / mi.get_per_sec('innodb_buffer_pool_read_requests')) if mi.get_per_sec('innodb_buffer_pool_read_requests') > 0 else 100.0,
@@ -577,7 +581,7 @@ if __name__ == '__main__':
             if idx == 0:
               print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s  %10s %7s %3s %3s %5d  %-17s %-17s %s" % \
                    (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                    abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
+                    abo, rts_sum_abo, com_sel, com_write, com_qps, slow, rts_sum_slow,
                     mi.get_current('read_only').replace('OFF', ''), repl_type,
                     repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5],
                     repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][4])
@@ -596,7 +600,7 @@ if __name__ == '__main__':
             if idx == 0:
               print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s  %10s %7s %3s %3s %5d  %-17s %-17s %s" % \
                    (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                    abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
+                    abo, rts_sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, rts_sum_slow,
                     mi.get_current('read_only').replace('OFF', ''), repl_type,
                     repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5],
                     repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][4])
@@ -610,7 +614,7 @@ if __name__ == '__main__':
         elif ViewMode == 3 and CmdWriteSum == True and mi.connected == True:  #Handler
           print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s %4s %4s %5d  %7d %7d %7d %7d %7d %7d %7d" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
+                abo, rts_sum_abo, com_sel, com_write, com_qps, slow, rts_sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_per_sec('handler_read_key'), mi.get_per_sec('handler_read_next'), mi.get_per_sec('handler_read_prev'),
                 mi.get_per_sec('handler_read_rnd'), mi.get_per_sec('handler_read_rnd_next'), mi.get_per_sec('handler_update'), mi.get_per_sec('handler_write') 
@@ -619,7 +623,7 @@ if __name__ == '__main__':
         elif ViewMode == 3 and CmdWriteSum == False and mi.connected == True:  #Handler
           print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %7d %7d %7d %7d %7d %7d %7d" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
+                abo, rts_sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, rts_sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_per_sec('handler_read_key'), mi.get_per_sec('handler_read_next'), mi.get_per_sec('handler_read_prev'),
                 mi.get_per_sec('handler_read_rnd'), mi.get_per_sec('handler_read_rnd_next'), mi.get_per_sec('handler_update'), mi.get_per_sec('handler_write')
@@ -628,7 +632,7 @@ if __name__ == '__main__':
         elif ViewMode == 4 and CmdWriteSum == True and mi.connected == True:  #Sort&Temp
           print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s %4s %4s %5d  %8d %10d %8d" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
+                abo, rts_sum_abo, com_sel, com_write, com_qps, slow, rts_sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_per_sec('sort_rows'), memory_tmp, disk_tmp
                )
@@ -636,7 +640,7 @@ if __name__ == '__main__':
         elif ViewMode == 4 and CmdWriteSum == False and mi.connected == True:  #Sort&Temp
           print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %8d %10d %8d" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
+                abo, rts_sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, rts_sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_per_sec('sort_rows'), memory_tmp, disk_tmp
                )
@@ -644,7 +648,7 @@ if __name__ == '__main__':
         elif ViewMode == 5 and CmdWriteSum == True and mi.connected == True:  #Net&FileIO
           print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s %4s %4s %5d  %5dkb %5dkb" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                abo, mi.sum_abo, com_sel, com_write, com_qps, slow, mi.sum_slow,
+                abo, rts_sum_abo, com_sel, com_write, com_qps, slow, rts_sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_per_sec('bytes_received') / 1024, mi.get_per_sec('bytes_sent') / 1024
                )
@@ -652,7 +656,7 @@ if __name__ == '__main__':
         elif ViewMode == 5 and CmdWriteSum == False and mi.connected == True:  #Net&FileIO
           print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s %4s %4s %5d  %5dkb %5dkb" % \
                (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
-                abo, mi.sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, mi.sum_slow,
+                abo, rts_sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, rts_sum_slow,
                 mi.get_current('read_only').replace('OFF', ''), repl_summary[0], repl_summary[1], repl_summary[2],
                 mi.get_per_sec('bytes_received') / 1024, mi.get_per_sec('bytes_sent') / 1024
                )
