@@ -23,8 +23,14 @@ group2,test4,3307
 ```
 #### 2) Create a MySQL user account 
 ```
-GRANT REPLICATION CLIENT ON *.*  to {USER}@{MONITOR_SERVER_IP} IDENTIFIED BY '{PASSWORD}';
+# <= MySQL 5.6
+GRANT REPLICATION CLIENT ON *.* TO {USER}@{MONITOR_SERVER_IP} IDENTIFIED BY '{PASSWORD}';
+
+# >= MySQL 5.7
+CREATE USER {USER}@{MONITOR_SERVER_IP} IDENTIFIED WITH mysql_native_password BY '{PASSWORD}';
+GRANT REPLICATION CLIENT ON *.* TO {USER}@{MONITOR_SERVER_IP};
 ```
+
 #### 3) Run watchtower
 ```
 $ python watchtower.py serverlist.txt
