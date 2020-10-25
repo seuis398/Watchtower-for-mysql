@@ -6,10 +6,7 @@ Watchtower is a python application designed for monitoring multiple mysql instan
 
 ### Requirements
 - Python 2.6 or higher
-- Python/MySQLdb
-```
-$ yum install MySQL-python
-```
+- MySQL Connector/Python 2.0 or higher [[download](https://dev.mysql.com/downloads/connector/python/)]
 
 ### Usage
 #### 1) Create server list file.

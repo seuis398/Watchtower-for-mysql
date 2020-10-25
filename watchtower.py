@@ -1,13 +1,13 @@
 #!/usr/bin/env python  
-#coding=utf-8         
+#-*- coding: utf-8 -*-
 import sys
 import os
 import csv
 import thread
 import time
 import getpass
-import MySQLdb
-import MySQLdb.cursors
+import mysql.connector
+from mysql.connector import errorcode
 
 WT_VERSION="0.7"
 
@@ -56,11 +56,11 @@ class MyInstance:
 
   def connect(self, user, passwd):
     try:
-      self.dbconn = MySQLdb.connect(host=self.hostname, port=self.port, user=user, passwd=passwd, connect_timeout=1)
-      self.dbcur = self.dbconn.cursor(MySQLdb.cursors.DictCursor)
+      self.dbconn = mysql.connector.connect(host=self.hostname, port=self.port, user=user, passwd=passwd, connection_timeout=1, auth_plugin='mysql_native_password', ssl_disabled='True')
+      self.dbcur = self.dbconn.cursor(dictionary=True)
       self.update_stat()
       self.connected = True
-    except MySQLdb.Error as err:
+    except mysql.connector.Error as err:
       self.connected = False
       # print err (member 변수에 에러 내용 심어주자.)
 
@@ -77,12 +77,12 @@ class MyInstance:
     try:
       # global status
       self.dbcur.execute("SHOW GLOBAL STATUS")
-      for row in self.dbcur:
+      for row in self.dbcur.fetchall():
         self.curr_stat[row["Variable_name"].lower()] = row["Value"]
 
       # global variable (read_only, version, gtid_mode, mts configuration)
       self.dbcur.execute("SHOW GLOBAL VARIABLES where Variable_name in ('read_only', 'version', 'gtid_mode', 'slave_parallel_type', 'slave_parallel_workers')")
-      for row in self.dbcur:
+      for row in self.dbcur.fetchall():
         self.curr_stat[row["Variable_name"].lower()] = row["Value"].split("-")[0] if row["Variable_name"].lower() == "version" else row["Value"]
 
       # slave status
@@ -120,7 +120,7 @@ class MyInstance:
 
       return True
 
-    except MySQLdb.Error as err:
+    except mysql.connector.Error as err:
       self.connected = False
       return False
 
@@ -401,7 +401,7 @@ def toggle(v):
 
 def put_ellipsis(str, n):
   if len(str) > n:
-    return str[:n-1] + "…"  
+    return str[:n-1] + u"…"  
   else:
     return str
  
