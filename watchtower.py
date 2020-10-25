@@ -9,7 +9,7 @@ import getpass
 import mysql.connector
 from mysql.connector import errorcode
 
-WT_VERSION="0.7"
+WT_VERSION="0.8"
 
 # Global Variables
 MySQL_User=""
