@@ -50,6 +50,7 @@ class MyInstance:
     self.curr_stat = {'dummy':0} # dict()
     self.sum_slow = 0
     self.sum_abo = 0
+    self.last_err = ""
 
   def __del__(self):
     self.disconnect()
@@ -60,9 +61,10 @@ class MyInstance:
       self.dbcur = self.dbconn.cursor(dictionary=True)
       self.update_stat()
       self.connected = True
+      self.last_err = "";
     except mysql.connector.Error as err:
       self.connected = False
-      # print err (member 변수에 에러 내용 심어주자.)
+      self.last_err = err
 
   def disconnect(self):
     if self.connected == True :
@@ -122,6 +124,7 @@ class MyInstance:
 
     except mysql.connector.Error as err:
       self.connected = False
+      self.last_err = err
       return False
 
   def get_current(self, item):
@@ -336,18 +339,18 @@ def print_header():
     make_line("-", 162)
 
   elif ViewMode == 2 and CmdWriteSum == True:
-    make_line("-", 151)
-    print "%16s %5s %5s %3s %2s %3s  %6s %5s %5s %4s %5s  %2s  %10s %7s %3s %3s %5s  %-17s %-17s %5s" % \
+    make_line("-", 145)
+    print "%16s %5s %5s %3s %2s %3s  %6s %5s %5s %4s %5s  %2s  %10s %7s %3s %3s %5s  %-17s %-17s" % \
          ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Write", "QPS",
-          "Slow", "SlowΣ", "RO", "Repl_Type", "Channel", "IO", "SQL", "Delay", "Master_Log", "Exec_Master_Log", "Error")
-    make_line("-", 151)
+          "Slow", "SlowΣ", "RO", "Repl_Type", "Channel", "IO", "SQL", "Delay", "Master_Log", "Exec_Master_Log")
+    make_line("-", 145)
 
   elif ViewMode == 2 and CmdWriteSum == False:
-    make_line("-", 174)
-    print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s  %10s %7s %3s %3s %5s  %-17s %-17s %5s" % \
+    make_line("-", 168)
+    print "%16s %5s %5s %3s %2s %3s  %6s %6s %6s %6s %7s %5s %4s %5s  %2s  %10s %7s %3s %3s %5s  %-17s %-17s" % \
          ("ServerName", "Port", "Conn", "Run", "Ab", "AbΣ", "Select", "Update", "Insert", "Delete", "Replace", "QPS",
-          "Slow", "SlowΣ", "RO", "Repl_Type", "Channel", "IO", "SQL", "Delay", "Master_Log", "Exec_Master_Log", "Error")
-    make_line("-", 174)
+          "Slow", "SlowΣ", "RO", "Repl_Type", "Channel", "IO", "SQL", "Delay", "Master_Log", "Exec_Master_Log")
+    make_line("-", 168)
 
   elif ViewMode == 3 and CmdWriteSum == True:
     make_line("-", 147)
@@ -579,16 +582,17 @@ if __name__ == '__main__':
           
           for idx in range(0, mi.get_repl_channel_cnt()):
             if idx == 0:
-              print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s  %10s %7s %3s %3s %5d  %-17s %-17s %s" % \
+              print "%16s %5d %5s %3d %2d %3d  %6d %5d %5d %4d %5d  %2s  %10s %7s %3s %3s %5d  %-17s %-17s" % \
                    (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                     abo, rts_sum_abo, com_sel, com_write, com_qps, slow, rts_sum_slow,
                     mi.get_current('read_only').replace('OFF', ''), repl_type,
-                    repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5],
-                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][4])
+                    repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5], repl_detail[idx][0], repl_detail[idx][1])
             else: # multi-source replication
-              print "%94s %3s %3s %5d  %-17s %-17s %s" % \
-                   (repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5],
-                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][4])
+              print "%94s %3s %3s %5d  %-17s %-17s" % \
+                   (repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5], repl_detail[idx][0], repl_detail[idx][1])
+            
+            if repl_detail[idx][4] != "":
+              print "%16s %s%s%s" % ("", color.magenta, repl_detail[idx][4], color.reset)
 
           del repl_detail
 
@@ -598,16 +602,17 @@ if __name__ == '__main__':
 
           for idx in range(0, mi.get_repl_channel_cnt()):
             if idx == 0:
-              print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s  %10s %7s %3s %3s %5d  %-17s %-17s %s" % \
+              print "%16s %5d %5s %3d %2d %3d  %6d %6d %6d %6d %7d %5d %4d %5d  %2s  %10s %7s %3s %3s %5d  %-17s %-17s" % \
                    (put_ellipsis(mi.hostname,16), mi.port, mi.get_current('threads_connected'), run,
                     abo, rts_sum_abo, com_sel, com_upd, com_ins, com_del, com_rep, com_qps, slow, rts_sum_slow,
                     mi.get_current('read_only').replace('OFF', ''), repl_type,
-                    repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5],
-                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][4])
+                    repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5], repl_detail[idx][0], repl_detail[idx][1])
             else: # multi-source replication
-              print "%117s %3s %3s %5d  %-17s %-17s %s" % \
-                   (repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5],
-                    repl_detail[idx][0], repl_detail[idx][1], repl_detail[idx][4])
+              print "%117s %3s %3s %5d  %-17s %-17s" % \
+                   (repl_detail[idx][6], repl_detail[idx][2], repl_detail[idx][3], repl_detail[idx][5], repl_detail[idx][0], repl_detail[idx][1])
+
+            if repl_detail[idx][4] != "":
+              print "%16s %s%s%s" % ("", color.magenta, repl_detail[idx][4], color.reset)
 
           del repl_detail
 
@@ -701,6 +706,7 @@ if __name__ == '__main__':
       # reconnect
       if mi.connected == False:
         print "%16s %5d --x-- not connected or no privileges" % (put_ellipsis(mi.hostname,16), mi.port)
+        print "%16s %s%s%s" % ("", color.magenta, mi.last_err, color.reset)
         mi.connect(MySQL_User, MySQL_Pass)                                                                                     
 
       prev_group = mi.groupname
